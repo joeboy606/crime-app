@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: crime-app-backend
+    env: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        value: spotcrime_jwt_secret_key_2026
