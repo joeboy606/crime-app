@@ -217,6 +217,8 @@ app.get('/api/locations', auth, async (req, res) => {
 app.get('/api/health', (req, res) => res.json({
   status: 'ok',
   mongo: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+  mongoUri_set: !!MONGO_URI,
+  mongoUri_prefix: MONGO_URI ? MONGO_URI.substring(0, 20) + '...' : 'none',
   timestamp: new Date().toISOString()
 }));
 
@@ -252,7 +254,11 @@ io.on('connection', (socket) => {
 
 // ===== START =====
 console.log('MONGO_URI set:', !!MONGO_URI);
-mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 10000 }).then(() => {
+console.log('MONGO_URI prefix:', MONGO_URI ? MONGO_URI.substring(0, 30) + '...' : 'none');
+mongoose.connect(MONGO_URI, {
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 45000
+}).then(() => {
   console.log('Connected to MongoDB');
 }).catch(err => {
   console.error('MongoDB connection error:', err.message);
