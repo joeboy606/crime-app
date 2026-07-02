@@ -3,5 +3,5 @@
 // For local: http://localhost:3000
 // For phone on same WiFi: http://192.168.x.x:3000
 
-export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://spotcrime-server-production.up.railway.app';
-export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || 'https://spotcrime-server-production.up.railway.app';
+export const API_URL = 'https://crime-app-backend-53e7.onrender.com';
+export const SOCKET_URL = 'https://crime-app-backend-53e7.onrender.com';
