@@ -247,11 +247,13 @@ io.on('connection', (socket) => {
 });
 
 // ===== START =====
-mongoose.connect(MONGO_URI).then(() => {
+console.log('MONGO_URI set:', !!MONGO_URI);
+mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 10000 }).then(() => {
   console.log('Connected to MongoDB');
-  const PORT = process.env.PORT || 3000;
-  server.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
 }).catch(err => {
-  console.error('MongoDB connection error:', err);
-  process.exit(1);
+  console.error('MongoDB connection error:', err.message);
+  console.log('Starting server without MongoDB...');
 });
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
