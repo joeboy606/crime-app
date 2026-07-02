@@ -13,7 +13,15 @@ const io = new Server(server, { cors: { origin: '*', methods: ['GET', 'POST'] } 
 app.use(cors());
 app.use(express.json());
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/crime-app';
+let MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/crime-app';
+// Fix: replace srv connection with direct connection if SRV fails
+if (MONGO_URI.includes('+srv')) {
+  const fallback = MONGO_URI
+    .replace('mongodb+srv://', 'mongodb://')
+    .replace('cluster0.ab0n5lf.mongodb.net/', 'ac-8lbgxyn-shard-00-00.ab0n5lf.mongodb.net:27017,ac-8lbgxyn-shard-00-01.ab0n5lf.mongodb.net:27017,ac-8lbgxyn-shard-00-02.ab0n5lf.mongodb.net:27017/');
+  const hasSsl = fallback.includes('ssl=') || fallback.includes('tls=');
+  MONGO_URI = hasSsl ? fallback : fallback + '&ssl=true&authSource=admin';
+}
 const JWT_SECRET = process.env.JWT_SECRET || 'spotcrime_jwt_secret_key_2026';
 
 // ===== MONGOOSE SCHEMAS =====
@@ -256,7 +264,8 @@ io.on('connection', (socket) => {
 console.log('MONGO_URI set:', !!MONGO_URI);
 console.log('MONGO_URI prefix:', MONGO_URI ? MONGO_URI.substring(0, 30) + '...' : 'none');
 mongoose.connect(MONGO_URI, {
-  serverSelectionTimeoutMS: 10000,
+  serverSelectionTimeoutMS: 30000,
+  connectTimeoutMS: 30000,
   socketTimeoutMS: 45000
 }).then(() => {
   console.log('Connected to MongoDB');
