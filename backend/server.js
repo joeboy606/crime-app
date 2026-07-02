@@ -214,7 +214,11 @@ app.get('/api/locations', auth, async (req, res) => {
   res.json(latest);
 });
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+app.get('/api/health', (req, res) => res.json({
+  status: 'ok',
+  mongo: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+  timestamp: new Date().toISOString()
+}));
 
 // ===== SOCKET.IO =====
 io.use((socket, next) => {
