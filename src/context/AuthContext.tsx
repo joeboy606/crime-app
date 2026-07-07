@@ -1,7 +1,13 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, Platform } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { authAPI } from '@/services/api';
 import { User } from '@/types';
+
+const storage = Platform.OS === 'web' ? {
+  getItem: (k: string) => Promise.resolve(localStorage.getItem(k)),
+  setItem: (k: string, v: string) => Promise.resolve(localStorage.setItem(k, v)),
+  deleteItem: (k: string) => Promise.resolve(localStorage.removeItem(k)),
+} : SecureStore;
 
 interface AuthContextType {
   user: User | null;
@@ -23,32 +29,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadStoredAuth = async () => {
     try {
-      const storedToken = await SecureStore.getItemAsync('token');
+      const storedToken = await storage.getItem('token');
       if (storedToken) {
         setToken(storedToken);
         const res = await authAPI.me();
         setUser(res.data);
       }
-    } catch { await SecureStore.deleteItemAsync('token'); }
+    } catch { await storage.deleteItem('token'); }
     finally { setLoading(false); }
   };
 
   const login = async (email: string, password: string) => {
     const res = await authAPI.login(email, password);
-    await SecureStore.setItemAsync('token', res.data.token);
+    await storage.setItem('token', res.data.token);
     setToken(res.data.token);
     setUser(res.data.user);
   };
 
   const signup = async (data: any) => {
     const res = await authAPI.signup(data);
-    await SecureStore.setItemAsync('token', res.data.token);
+    await storage.setItem('token', res.data.token);
     setToken(res.data.token);
     setUser(res.data.user);
   };
 
   const logout = async () => {
-    await SecureStore.deleteItemAsync('token');
+    await storage.deleteItem('token');
     setToken(null);
     setUser(null);
   };
