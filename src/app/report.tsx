@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Platform } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { reportAPI } from '@/services/api';
@@ -26,11 +26,16 @@ export default function ReportScreen() {
   const getLocation = async () => {
     setLocating(true);
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') { Alert.alert('Permission needed'); return; }
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-      const [addr] = await Location.reverseGeocodeAsync(loc.coords);
-      setLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude, address: addr ? `${addr.street || ''}, ${addr.city || ''}` : 'Location captured' });
+      if (Platform.OS === 'web') {
+        const pos = await new Promise<GeolocationPosition>((res, rej) => navigator.geolocation.getCurrentPosition(res, rej));
+        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, address: `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}` });
+      } else {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') { Alert.alert('Permission needed'); return; }
+        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+        const [addr] = await Location.reverseGeocodeAsync(loc.coords);
+        setLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude, address: addr ? `${addr.street || ''}, ${addr.city || ''}` : 'Location captured' });
+      }
     } catch {} finally { setLocating(false); }
   };
 
